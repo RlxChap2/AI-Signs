@@ -20,7 +20,7 @@ hand_history = deque(maxlen=10)
 # الصفحة الرئيسية
 @app.route('/')
 def index():
-    return render_template("index.html")
+    return render_template("templates/index.html")
 
 
 # المسار المسؤول عن تحليل الصورة القادمة من الكاميرا
