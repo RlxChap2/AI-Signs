@@ -1,6 +1,0 @@
-[phases.setup]
-nixPkgs = ["libGL", "glib", "libSM", "libxext", "libxrender"]
-
-[variables]
-QT_QPA_PLATFORM = "offscreen"
-OPENCV_IO_ENABLE_OPENEXR = "1"
