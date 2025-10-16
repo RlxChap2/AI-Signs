@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>مشروع لغة الإشارة</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body { 
+      background: radial-gradient(circle at top left, #0f172a, #020617); 
+      font-family: 'Cairo', sans-serif;
+    }
+    .glass {
+      background: rgba(255, 255, 255, 0.05);
+      backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+  </style>
+</head>
+<body class="flex flex-col items-center justify-center min-h-screen text-white px-4">
+
+  <h1 class="text-5xl font-extrabold mb-10 text-blue-400 tracking-wide text-center">
+    📹 مشروع ترجمة لغة الإشارة
+  </h1>
+
+  <!-- الكاميرا -->
+  <div class="relative w-[95%] max-w-[1000px] glass rounded-2xl shadow-lg p-5 flex flex-col items-center">
+    <video id="camera" width="1000" height="450" autoplay muted playsinline 
+      class="rounded-xl border-4 border-blue-700 shadow-lg"></video>
+    <div class="absolute top-4 left-4 bg-blue-700/60 px-4 py-1 rounded-md text-base font-semibold">
+      الكاميرا
+    </div>
+  </div>
+
+  <div class="flex flex-wrap justify-center gap-8 mt-10 w-[95%] max-w-[1100px]">
+    <!-- خوارزميات -->
+    <div class="glass w-[420px] h-[220px] p-6 rounded-2xl border border-blue-800 shadow-inner overflow-auto">
+      <h2 class="text-xl font-semibold text-blue-400 mb-3">🔢 الخوارزميات / الإحداثيات</h2>
+      <div id="logs" class="text-base text-gray-200 space-y-2 leading-relaxed">
+        <p>جاهز لبدء التحليل...</p>
+      </div>
+    </div>
+
+    <!-- ترجمة -->
+    <div class="glass w-[550px] h-[220px] p-6 rounded-2xl border border-red-800 shadow-inner">
+      <h2 class="text-xl font-semibold text-red-400 mb-3">🤖 نتائج الترجمة (AI)</h2>
+      <div id="predictions" class="text-4xl text-green-400 font-extrabold tracking-wider text-center">
+        ---
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const video = document.getElementById('camera');
+    const predBox = document.getElementById('predictions');
+    const logsBox = document.getElementById('logs');
+
+    async function initCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        video.srcObject = stream;
+      } catch (err) {
+        console.error("تعذّر تشغيل الكاميرا:", err);
+      }
+    }
+
+    async function captureAndSend() {
+      if (!video.videoWidth) return;
+
+      const canvas = document.createElement('canvas');
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(video, 0, 0);
+      const imageData = canvas.toDataURL('image/jpeg');
+
+      try {
+        const res = await fetch('http://127.0.0.1:8000/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ image: imageData })
+        });
+
+        const data = await res.json();
+        if (data.gesture) predBox.textContent = data.gesture;
+        if (data.coords) {
+          logsBox.innerHTML = data.coords
+            .slice(0, 5)
+            .map(p => `<p>x:${p.x}, y:${p.y}</p>`)
+            .join('');
+        }
+      } catch (err) {
+        console.error(err);
+      }
+    }
+
+    initCamera();
+    setInterval(captureAndSend, 1500);
+  </script>
+</body>
+</html>
